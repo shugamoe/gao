@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in data/CancerChr*pos.txt; do
+for i in data/CancerChr{21..22}.pos.txt; do
   echo
   CHROM=$(echo $i | egrep -o '2[12]{1}')
   POSVAR=$(echo `head -n1 $i | awk -F , '{print $3}'`)

@@ -41,8 +41,8 @@ fcgene --file data/1000CEU_Chr22_update --oformat bimbam --out data/1000CEU_Chr2
 # the chromosome. 
 # JCM: Can do it with plink, bash script also possible.
 
-# plink1.9 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new --recode bimbam-1chr --out data/CancerChr21
-# plink1.9 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new --recode bimbam-1chr --out data/CancerChr22
+# plink1.9 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new --recode bimbam --out data/CancerChr21
+# plink1.9 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new --recode bimbam --out data/CancerChr22
 
 ./count_snps.sh
 
