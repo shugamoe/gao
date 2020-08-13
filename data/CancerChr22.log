@@ -1,0 +1,30 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --file data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new
+  --out data/CancerChr22
+  --recode bimbam-1chr
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Tue Aug 11 16:36:24 2020
+
+Random number seed: 1597181784
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (28969 variants, 3686 people).
+--file: data/CancerChr22-temporary.bed + data/CancerChr22-temporary.bim +
+data/CancerChr22-temporary.fam written.
+28969 variants loaded from .bim file.
+3686 people (0 males, 3686 females) loaded from .fam.
+3685 phenotype values loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 3686 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.998128.
+28969 variants and 3686 people pass filters and QC.
+Among remaining phenotypes, 1657 are cases and 2028 are controls.  (1 phenotype
+is missing.)
+--recode bimbam-1chr to data/CancerChr22.recode.geno.txt +
+data/CancerChr22.recode.pheno.txt + data/CancerChr22.recode.pos.txt ... done.
+
+End time: Tue Aug 11 16:36:28 2020

@@ -1,0 +1,48 @@
+
+||====================================================================================||
+*-> Version: 1.0.7
+*-> Copyright:  GNU General Public License
+*-> Program Developer: 	
+	 Nab Raj Roshyara	 
+	 email: roshyara@yahoo.com	 
+	 Universitaet Leipzig		 
+	 Leipzig Research Center for Civilization Diseases(LIFE)
+	 Institute for Medical Informatics, Statistics and Epidemiology (IMISE)
+	 Group: Genetical Statistics and Systems Biology 
+	 Group Leader: Prof. Dr. Markus Scholz
+|--------------------------------------------------------------------------------------|
+*->Given command options:
+	 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new
+	 --oformat bimbam
+	 --out data/CancerChr21
+||====================================================================================||
+	**->Used command options: 
+	 --file data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new
+	 --oformat bimbam
+	 --out data/CancerChr21
+
+*->Reading map file "data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new.map":
+
+*-> Reading  ped file: "data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new.ped":
+**->Total number of successfully read individuals: 3686
+	           **->Total number of successfully read: 28634
+
+
+*->Individual summary:
+	**->Total females:                                3686
+	**->Total males:                                  0
+	**->Total individuals with undefined sex:         0
+
+	**->Total cases:                                  1657
+	**->Total controls:                               2028
+	**->Total individuals with undefined status:      1
+*->Writing files in bimbam format: 
+	**->Genotype data for bimbam has been saved as "data/CancerChr21.geno.txt.".
+	**->Phenotype data for bimbam has been saved as "data/CancerChr21.pheno.txt.".
+	**->SNP location file has been written out and saved as  "data/CancerChr21.pos.txt".
+	**->One extra "pedinfo.txt" file has  been written out and saved as "data/CancerChr21_pedinfo.txt".
+	**->One extra "snpinfo.txt" file has been written out and saved as "data/CancerChr21_snpinfo.txt". 
+
+*->The analysis has ended at Wed Aug 12 13:26:11 2020
+
+*->Total time taken for the analysis is: 0 hours, 3 minutes and 0.00 seconds.

@@ -1,0 +1,48 @@
+
+||====================================================================================||
+*-> Version: 1.0.7
+*-> Copyright:  GNU General Public License
+*-> Program Developer: 	
+	 Nab Raj Roshyara	 
+	 email: roshyara@yahoo.com	 
+	 Universitaet Leipzig		 
+	 Leipzig Research Center for Civilization Diseases(LIFE)
+	 Institute for Medical Informatics, Statistics and Epidemiology (IMISE)
+	 Group: Genetical Statistics and Systems Biology 
+	 Group Leader: Prof. Dr. Markus Scholz
+|--------------------------------------------------------------------------------------|
+*->Given command options:
+	 --file data/1000CEU_Chr22_update
+	 --oformat bimbam
+	 --out data/1000CEU_Chr22
+||====================================================================================||
+	**->Used command options: 
+	 --file data/1000CEU_Chr22_update
+	 --oformat bimbam
+	 --out data/1000CEU_Chr22
+
+*->Reading map file "data/1000CEU_Chr22_update.map":
+
+*-> Reading  ped file: "data/1000CEU_Chr22_update.ped":
+**->Total number of successfully read individuals: 85
+	           **->Total number of successfully read: 231876
+
+
+*->Individual summary:
+	**->Total females:                                0
+	**->Total males:                                  0
+	**->Total individuals with undefined sex:         85
+
+	**->Total cases:                                  0
+	**->Total controls:                               0
+	**->Total individuals with undefined status:      85
+*->Writing files in bimbam format: 
+	**->Genotype data for bimbam has been saved as "data/1000CEU_Chr22.geno.txt.".
+	**->Phenotype data for bimbam has been saved as "data/1000CEU_Chr22.pheno.txt.".
+	**->SNP location file has been written out and saved as  "data/1000CEU_Chr22.pos.txt".
+	**->One extra "pedinfo.txt" file has  been written out and saved as "data/1000CEU_Chr22_pedinfo.txt".
+	**->One extra "snpinfo.txt" file has been written out and saved as "data/1000CEU_Chr22_snpinfo.txt". 
+
+*->The analysis has ended at Wed Aug 12 13:32:49 2020
+
+*->Total time taken for the analysis is: 0 hours, 0 minutes and 35.00 seconds.

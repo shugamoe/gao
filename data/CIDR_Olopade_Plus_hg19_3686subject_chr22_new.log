@@ -1,0 +1,28 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --bfile data/CIDR_Olopade_Plus_hg19_3686subject_chr22
+  --noweb
+  --out data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new
+  --recode
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 13:23:02 2020
+
+Note: --noweb has no effect since no web check is implemented yet.
+Random number seed: 1597256582
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+28969 variants loaded from .bim file.
+3686 people (0 males, 3686 females) loaded from .fam.
+3685 phenotype values loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 3686 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.998128.
+28969 variants and 3686 people pass filters and QC.
+Among remaining phenotypes, 1657 are cases and 2028 are controls.  (1 phenotype
+is missing.)
+--recode ped to data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new.ped +
+data/CIDR_Olopade_Plus_hg19_3686subject_chr22_new.map ... done.
+
+End time: Wed Aug 12 13:23:11 2020

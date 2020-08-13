@@ -1,0 +1,35 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --exclude data/1000CEU_Chr21_Delete.txt
+  --file data/1000CEU_Chr21
+  --noweb
+  --out data/1000CEU_Chr21_update
+  --recode
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 13:29:42 2020
+
+Note: --noweb has no effect since no web check is implemented yet.
+Random number seed: 1597256982
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+Scanning .ped file...
+Possibly irregular .ped line.  Restarting scan, assuming multichar alleles.
+.ped scan complete (for binary autoconversion).
+Performing single-pass .bed write (236000 variants, 85 people).
+--file: data/1000CEU_Chr21_update-temporary.bed +
+data/1000CEU_Chr21_update-temporary.bim +
+data/1000CEU_Chr21_update-temporary.fam written.
+236000 variants loaded from .bim file.
+85 people (0 males, 0 females, 85 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to data/1000CEU_Chr21_update.nosex .
+--exclude: 235928 variants remaining.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 85 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+235928 variants and 85 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to data/1000CEU_Chr21_update.ped + data/1000CEU_Chr21_update.map
+... done.
+
+End time: Wed Aug 12 13:29:46 2020

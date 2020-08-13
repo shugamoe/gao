@@ -1,0 +1,26 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --make-bed
+  --out data/AFR_Chr21
+  --vcf data/chr21.phase1_release_v3.20101123.snps_indels_svs.genotypes.refpanel.AFR.vcf
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 13:29:16 2020
+
+Random number seed: 1597256956
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+--vcf: data/AFR_Chr21-temporary.bed + data/AFR_Chr21-temporary.bim +
+data/AFR_Chr21-temporary.fam written.
+360424 variants loaded from .bim file.
+246 people (0 males, 0 females, 246 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to data/AFR_Chr21.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 246 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+360424 variants and 246 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to data/AFR_Chr21.bed + data/AFR_Chr21.bim + data/AFR_Chr21.fam ...
+done.
+
+End time: Wed Aug 12 13:29:19 2020

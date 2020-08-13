@@ -1,0 +1,25 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --bfile data/EUR_Chr22
+  --keep data/CEU_ID.txt
+  --out data/1000CEU_Chr22
+  --recode
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 13:29:29 2020
+
+Random number seed: 1597256969
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+232005 variants loaded from .bim file.
+379 people (0 males, 0 females, 379 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to data/1000CEU_Chr22.nosex .
+--keep: 85 people remaining.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 85 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+232005 variants and 85 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to data/1000CEU_Chr22.ped + data/1000CEU_Chr22.map ... done.
+
+End time: Wed Aug 12 13:29:30 2020

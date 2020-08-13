@@ -1,0 +1,26 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --make-bed
+  --out data/EUR_Chr22
+  --vcf data/chr22.phase1_release_v3.20101123.snps_indels_svs.genotypes.refpanel.EUR.vcf
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 13:29:13 2020
+
+Random number seed: 1597256953
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+--vcf: data/EUR_Chr22-temporary.bed + data/EUR_Chr22-temporary.bim +
+data/EUR_Chr22-temporary.fam written.
+232005 variants loaded from .bim file.
+379 people (0 males, 0 females, 379 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to data/EUR_Chr22.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 379 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+232005 variants and 379 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to data/EUR_Chr22.bed + data/EUR_Chr22.bim + data/EUR_Chr22.fam ...
+done.
+
+End time: Wed Aug 12 13:29:16 2020

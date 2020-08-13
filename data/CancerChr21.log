@@ -1,0 +1,30 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --file data/CIDR_Olopade_Plus_hg19_3686subject_chr21_new
+  --out data/CancerChr21
+  --recode bimbam
+
+Hostname: mi3vm
+Working directory: /home/jcm/docs/gao
+Start time: Wed Aug 12 20:28:06 2020
+
+Random number seed: 1597282086
+10975 MB RAM detected; reserving 5487 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (28634 variants, 3686 people).
+--file: data/CancerChr21-temporary.bed + data/CancerChr21-temporary.bim +
+data/CancerChr21-temporary.fam written.
+28634 variants loaded from .bim file.
+3686 people (0 males, 3686 females) loaded from .fam.
+3685 phenotype values loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 3686 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.99841.
+28634 variants and 3686 people pass filters and QC.
+Among remaining phenotypes, 1657 are cases and 2028 are controls.  (1 phenotype
+is missing.)
+--recode bimbam to data/CancerChr21.recode.geno.txt +
+data/CancerChr21.recode.pheno.txt + data/CancerChr21.recode.pos.txt ... done.
+
+End time: Wed Aug 12 20:28:10 2020
