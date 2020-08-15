@@ -1,0 +1,199 @@
+---
+title: "Inferring Breast Cancer Risk with Genetic Data"
+author: "Julian McClellan"
+date: "8/13/2020"
+output: 
+  revealjs::revealjs_presentation:
+    theme: night
+    transition: convex
+---
+
+```{r get_cohort_info, include=F}
+knitr::opts_chunk$set(include=F)
+# Get IDs for patients
+elai.inp.geno <- c("../data/CancerChr22.geno.txt", "../data/CancerChr22.geno.txt")
+
+extractThirdLine <- function(fp){
+  require(stringr)
+  
+  con <- file(fp, "r")
+  lines <- c()
+  gotThird <- F
+  
+  count <- 0
+  while(count != 3) {
+    line <- readLines(con, 1)
+    count <- count + 1
+  }
+  
+  close(con)
+  ids <- str_split(line, ", ", simplify=T)[-1] # Leave out title "IND"
+  return(ids)
+}
+
+ids.chr21 <- extractThirdLine(elai.inp.geno[1])
+# ids.chr22 <- extractThirdLine(elai.inp.geno[2])
+
+# IDs should be in the same order
+# all(ids.chr21 == ids.chr22) 
+
+## Get cases
+
+chr21.fam <- read.table("../data/CIDR_Olopade_Plus_hg19_3686subject_chr21.fam")
+# chr22.fam <- read.table("../data/CIDR_Olopade_Plus_hg19_3686subject_chr22.fam")
+
+# all(chr21.fam$V6 == chr21.fam$V6) # Cases should be same
+# all(chr21.fam$V2 == chr21.fam$V2) # ==> IDs should be same
+# all(chr21.fam$V2 == ids.chr21)
+# all(chr21.fam$V2 == ids.chr22)
+
+library(dplyr)
+cohort <- tibble(ind = ids.chr21, case = chr21.fam$V6) %>%
+  mutate(status = case_when(case == 2 ~ "cancer",
+                                   case == 1 ~ "control",
+                                   TRUE ~ "unknown"))
+```
+
+```{r display_cohort}
+library(kableExtra)
+
+cohort_breakdown <- cohort %>%
+  group_by(status) %>%
+  summarize(n = n()) %>%
+  rmarkdown::paged_table() %>%
+  knitr::kable("html",
+               digits = 5) %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F, font_size = 26)
+```
+
+```{r get_panel_info}
+ids.ceu <- extractThirdLine("../data/1000CEU_Chr21.geno.txt")
+ids.yri <- extractThirdLine("../data/1000YRI_Chr21.geno.txt")
+
+# ids.ceu22 <- extractThirdLine("../data/1000CEU_Chr22.geno.txt")
+# ids.yri22 <- extractThirdLine("../data/1000YRI_Chr22.geno.txt")
+
+panel_breakdown <- bind_rows(
+  tibble(id = ids.ceu, ancestry = "Northern/Western Europe"),
+  tibble(id = ids.yri, ancestry = "West Africa (Nigeria)")
+) %>%
+  group_by(ancestry) %>%
+  summarize(n = n()) %>%
+  rmarkdown::paged_table() %>%
+  knitr::kable("html",
+               digits = 5) %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F, font_size = 26)
+```
+
+# Overview
+
+<p style="text-align:left;">Using **E**fficient **L**ocal **A**ncestry **I**nference (**ELAI**) we will attempt to infer the allele dosages from West African and Northern/Western European source populations for SNPs across chromosomes 21 and 22 for a sample of African Americans.</p>
+
+<p style="text-align:left;">Combining the ELAI results with the cancer statuses of the sample individuals, we will attempt to fit a model to infer breast cancer risk.</p>
+
+# Data
+
+- `r nrow(cohort)` individuals in the sample cohort 
+- `r length(ids.ceu) + length(ids.yri)` individuals in the panel
+  - (`r 2*(length(ids.ceu) + length(ids.yri))` haplotypes)
+
+## Cohort
+
+`r cohort_breakdown`
+
+## Panel
+
+`r panel_breakdown`
+
+# Transformations
+
+<p style="text-align:left;">Both the cohort files and panel files end up as bimbam format files for entry use in ELAI.</p>
+ - <p style="text-align:left;">For the `*geno.txt` files for the cohort and panel, the number of SNPs must be put on the 2nd row.</p>
+ - <p style="text-align:left;">For the study position files the chromsome ID is added.</p>
+ - <p style="text-align:left;">For the reference `*geno.txt` files, we add an `"="` after the number of individuals because these genotypes are *phased*, that is, we can identify which chromosome the genotypes' alleles are from.</p>
+
+
+```{r setup, eval=F, include=F}
+yy.chr21 <- scan("../output/Adm_Cancer_Chr21.ps21.txt")
+S.chr21 = 2 # (source populations)
+M.chr21 = 20352 # (# SNPs)
+N.chr21 = 3686 # (individuals in sample)
+dim(yy.chr21) <- c(S.chr21, M.chr21, N.chr21)
+
+# Equivalent way of getting "sy" in elai example, 2 for YRI (African ancestry)
+yy.chr21 <- t(yy.chr21[2,,]) 
+
+yy.chr22 <- scan("../output/Adm_Cancer_Chr22.ps21.txt")
+S.chr22 = 2 # (source populations)
+M.chr22 = 21244 # (# SNPs)
+N.chr22 = 3686 # (individuals in sample)
+dim(yy.chr22) <- c(S.chr22, M.chr22, N.chr22)
+
+yy.chr22 <- t(yy.chr22[2,,])
+
+# Stick allele dosages for chr21 and chr22 SNPs together for 3686 cohort individuals
+yy.chr2122 <- cbind(yy.chr21, yy.chr22)
+# rm(yy.chr21, yy.chr22)
+
+yy.chr2122 <- as_tibble(yy.chr2122) %>%
+  bind_cols(cohort, .)
+
+yy.chr21 <- as_tibble(yy.chr21) %>%
+  bind_cols(cohort, .)
+
+yy.chr22 <- as_tibble(yy.chr22) %>%
+  bind_cols(cohort, .)
+
+saveRDS(yy.chr2122, "../data/for_R/chr2122.rds")
+saveRDS(yy.chr21, "../data/for_R/chr21.rds")
+saveRDS(yy.chr22, "../data/for_R/chr22.rds")
+
+rm(list = ls())
+```
+
+```{r train_model, eval=F}
+library(dplyr)
+train_model <- function(full_dat, trim = F){
+  require(caret)
+  require(dplyr)
+  
+  full_dat <- full_dat %>%
+    filter(cancer != "unknown") %>%
+    select(-c(ind, case))
+  
+  if (trim){
+    ctrl <- trainControl(method = "repeatedcv",
+                         # Save memory
+                         trim = T,
+                         returnData = F,
+                         repeats = 3,
+                         classProbs = T,
+                         preProcOptions = list(thresh = .85), # % of Variance to keep
+                         summaryFunction = twoClassSummary
+                         )
+  } else {
+    ctrl <- trainControl(method = "repeatedcv",
+                         repeats = 3,
+                         returnData = F,
+                         classProbs = T,
+                         preProcOptions = list(thresh = .85), # % of Variance to keep
+                         summaryFunction = twoClassSummary
+                         )
+  }
+  
+  options(expressions = 500000)
+  model <- train(cancer ~ .,
+                 data = full_dat,
+                 method = "glm", 
+                 metric = "ROC",
+                 preProcess=c("pca"),
+                 trControl = ctrl
+                 )
+  
+  return(model)
+}
+```
+
+
