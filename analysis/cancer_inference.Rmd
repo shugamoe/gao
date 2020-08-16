@@ -54,6 +54,47 @@ cohort <- tibble(ind = ids.chr21, case = chr21.fam$V6) %>%
                                    TRUE ~ "unknown"))
 ```
 
+```{r setup_training_data, eval=F, include=F}
+library(dplyr)
+rsids.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)[,1]
+rsids.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)[,1]
+
+yy.chr21 <- scan("../output/Adm_Cancer_Chr21.ps21.txt")
+S.chr21 = 2 # (source populations)
+M.chr21 = 20352 # (# SNPs)
+N.chr21 = 3686 # (individuals in sample)
+dim(yy.chr21) <- c(S.chr21, M.chr21, N.chr21)
+
+# Equivalent way of getting "sy" in elai example, 2 for YRI (African ancestry)
+yy.chr21 <- as_tibble(t(yy.chr21[2,,]))
+names(yy.chr21) <- rsids.chr21
+
+yy.chr22 <- scan("../output/Adm_Cancer_Chr22.ps21.txt")
+S.chr22 = 2 # (source populations)
+M.chr22 = 21244 # (# SNPs)
+N.chr22 = 3686 # (individuals in sample)
+dim(yy.chr22) <- c(S.chr22, M.chr22, N.chr22)
+
+yy.chr22 <- as_tibble(t(yy.chr22[2,,]))
+names(yy.chr22) <- rsids.chr22
+
+# Stick allele dosages for chr21 and chr22 SNPs together for 3686 cohort individuals
+yy.chr2122 <- bind_cols(cohort, yy.chr21, yy.chr22)
+
+yy.chr21 <- yy.chr21 %>%
+  bind_cols(cohort, .)
+
+yy.chr22 <- yy.chr22 %>%
+  bind_cols(cohort, .)
+
+
+saveRDS(yy.chr2122, "../data/for_R/chr2122.rds")
+saveRDS(yy.chr21, "../data/for_R/chr21.rds")
+saveRDS(yy.chr22, "../data/for_R/chr22.rds")
+
+rm(list = ls())
+```
+
 ```{r display_cohort}
 library(kableExtra)
 
@@ -113,87 +154,7 @@ panel_breakdown <- bind_rows(
  - <p style="text-align:left;">For the `*geno.txt` files for the cohort and panel, the number of SNPs must be put on the 2nd row.</p>
  - <p style="text-align:left;">For the study position files the chromsome ID is added.</p>
  - <p style="text-align:left;">For the reference `*geno.txt` files, we add an `"="` after the number of individuals because these genotypes are *phased*, that is, we can identify which chromosome the genotypes' alleles are from.</p>
-
-
-```{r setup, eval=F, include=F}
-yy.chr21 <- scan("../output/Adm_Cancer_Chr21.ps21.txt")
-S.chr21 = 2 # (source populations)
-M.chr21 = 20352 # (# SNPs)
-N.chr21 = 3686 # (individuals in sample)
-dim(yy.chr21) <- c(S.chr21, M.chr21, N.chr21)
-
-# Equivalent way of getting "sy" in elai example, 2 for YRI (African ancestry)
-yy.chr21 <- t(yy.chr21[2,,]) 
-
-yy.chr22 <- scan("../output/Adm_Cancer_Chr22.ps21.txt")
-S.chr22 = 2 # (source populations)
-M.chr22 = 21244 # (# SNPs)
-N.chr22 = 3686 # (individuals in sample)
-dim(yy.chr22) <- c(S.chr22, M.chr22, N.chr22)
-
-yy.chr22 <- t(yy.chr22[2,,])
-
-# Stick allele dosages for chr21 and chr22 SNPs together for 3686 cohort individuals
-yy.chr2122 <- cbind(yy.chr21, yy.chr22)
-# rm(yy.chr21, yy.chr22)
-
-yy.chr2122 <- as_tibble(yy.chr2122) %>%
-  bind_cols(cohort, .)
-
-yy.chr21 <- as_tibble(yy.chr21) %>%
-  bind_cols(cohort, .)
-
-yy.chr22 <- as_tibble(yy.chr22) %>%
-  bind_cols(cohort, .)
-
-saveRDS(yy.chr2122, "../data/for_R/chr2122.rds")
-saveRDS(yy.chr21, "../data/for_R/chr21.rds")
-saveRDS(yy.chr22, "../data/for_R/chr22.rds")
-
-rm(list = ls())
+ 
+```{r present_model}
+model.chr21 <- readr::read_rds("../output/model.chr21.rds") 
 ```
-
-```{r train_model, eval=F}
-library(dplyr)
-train_model <- function(full_dat, trim = F){
-  require(caret)
-  require(dplyr)
-  
-  full_dat <- full_dat %>%
-    filter(cancer != "unknown") %>%
-    select(-c(ind, case))
-  
-  if (trim){
-    ctrl <- trainControl(method = "repeatedcv",
-                         # Save memory
-                         trim = T,
-                         returnData = F,
-                         repeats = 3,
-                         classProbs = T,
-                         preProcOptions = list(thresh = .85), # % of Variance to keep
-                         summaryFunction = twoClassSummary
-                         )
-  } else {
-    ctrl <- trainControl(method = "repeatedcv",
-                         repeats = 3,
-                         returnData = F,
-                         classProbs = T,
-                         preProcOptions = list(thresh = .85), # % of Variance to keep
-                         summaryFunction = twoClassSummary
-                         )
-  }
-  
-  options(expressions = 500000)
-  model <- train(cancer ~ .,
-                 data = full_dat,
-                 method = "glm", 
-                 metric = "ROC",
-                 preProcess=c("pca"),
-                 trControl = ctrl
-                 )
-  
-  return(model)
-}
-```
-
-
