@@ -13,6 +13,16 @@ knitr::opts_chunk$set(include=F)
 # Get IDs for patients
 elai.inp.geno <- c("../data/CancerChr22.geno.txt", "../data/CancerChr22.geno.txt")
 
+makeTable <- function(df, font_size){
+  require(dplyr)
+  df %>%
+    rmarkdown::paged_table() %>%
+    knitr::kable("html",
+                 digits = 5) %>%
+    kable_styling(bootstrap_options = "striped",
+                  full_width = F, font_size = font_size)
+}
+
 extractThirdLine <- function(fp){
   require(stringr)
   
@@ -56,7 +66,7 @@ rsids.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)[,1]
 rsids.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)[,1]
 ```
 
-```{r setup_training_data, eval=F, include=F}
+```{r get_training_data, eval=F, include=F}
 library(dplyr)
 rsids.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)[,1]
 rsids.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)[,1]
@@ -103,20 +113,14 @@ library(kableExtra)
 cohort_breakdown <- cohort %>%
   group_by(status) %>%
   summarize(n = n()) %>%
-  rmarkdown::paged_table() %>%
-  knitr::kable("html",
-               digits = 5) %>%
-  kable_styling(bootstrap_options = "striped",
-                full_width = F, font_size = 26)
+  makeTable(font_size=26)
 
+snps.chr21 <- length(rsids.chr21)
+snps.chr22 <- length(rsids.chr22)
 snp_breakdown <- tibble(chromosome = c(21, 22),
-                        SNPs = c(length(rsids.chr21), 
-                                 length(rsids.chr22))) %>% 
-  rmarkdown::paged_table() %>%
-  knitr::kable("html",
-               digits = 5) %>%
-  kable_styling(bootstrap_options = "striped",
-                full_width = F, font_size = 26)
+                        SNPs = c(snps.chr21, 
+                                 snps.chr22)) %>% 
+  makeTable(font_size=26)
 ```
 
 ```{r get_panel_info}
@@ -132,11 +136,7 @@ panel_breakdown <- bind_rows(
 ) %>%
   group_by(ancestry) %>%
   summarize(n = n()) %>%
-  rmarkdown::paged_table() %>%
-  knitr::kable("html",
-               digits = 5) %>%
-  kable_styling(bootstrap_options = "striped",
-                full_width = F, font_size = 26)
+  makeTable(font_size=26)
 ```
 
 # Overview
@@ -148,7 +148,7 @@ panel_breakdown <- bind_rows(
 # Data
 
 - `r nrow(cohort)` individuals in the sample cohort 
-- `r length(ids.ceu) + length(ids.yri)` individuals in the panel
+- `r length(ids.ceu) + length(ids.yri)` individuals in the reference panel
   - (`r 2*(length(ids.ceu) + length(ids.yri))` haplotypes)
 
 ## Cohort
@@ -179,7 +179,7 @@ panel_breakdown <- bind_rows(
 
 ## Bimbam Processing
 
- - <p style="text-align:left;">For the study position files the chromsome ID is added.</p>
+ - <p style="text-align:left;">For the sample position files the chromsome ID is added.</p>
  
 ![](img/bimbam_edit2.png)
  
@@ -210,10 +210,10 @@ panel_breakdown <- bind_rows(
 
 - A file containing a table with dimensions $(S, M, N)$, where:
   - $S$ corresponds to the number of source populations (`2`)
-  - $M$ to the number of SNPs 
+  - $M$ to the number of SNPs present in all position and genotype files.
  `r snp_breakdown`
-  - $N$ to the number of admixed individuals in the sample.
-- For a given $s$, $m$, and $n$ in the file we will see the expected number of alleles from the $s$th source population for $m$th marker for  $n$th individual. (I.e. the allele dosage $\in[0,2]$)
+  - $N$ to the number of admixed individuals in the sample (`3686`).
+- For a given $s$, $m$, and $n$ in the file we will see the expected number of alleles from the $s$th source population for $m$th marker for  $n$th individual. (allele dosage $\in[0,2]$)
   
 ## ELAI Output | SNP Info
 
@@ -229,18 +229,28 @@ panel_breakdown <- bind_rows(
 
 <p style="text-align:left;">By combining elements of the ELAI input and output, we can create a file suitable for cancer risk inference, a $N \times M$ file where individual cancer statuses and rsIDs of SNPs can be identified.</p>
 
+<p style="text-align:left;">So for a given chromsome(s) with $M$ SNPs we model an individual $i$'s cancer status as:</p>
+
 <br>
 <br>
 
-$$cancer\_status \sim allele\_dosage_{1} + \ \cdot\cdot\cdot \ + allele\_dosage_{M}$$
+$$cancer\_status_{i} \sim allele\_dosage_{i1} + \ \cdot\cdot\cdot \ + allele\_dosage_{iM}$$
 
-## LASSO
+## Logistic LASSO Regression
 
 - LASSO has the nice property of zeroing out coefficients.
-- Assuming the $\lambda$ parameter can be properly adjusted this can allow a simpler model with that focuses on the most relevant SNP predictors.
-- Model selection selects optimal ROC using 10 fold cross validation across 150 possible lambda values (equidistant on log scale from `.001` to `100`).
+  - Can allow a simpler model that focuses on the most relevant SNP predictors.
+- Model selection chooses the model with highest ROC using: 
+  - 5 fold cross validation repeated 50 times across 150 possible lambda values (equidistant on log scale from `.001` to `100`).
 
-## Performance | Final Model
+<br>
+Models
+
+1. `r snps.chr21` SNPs from Chromosome 21
+2. `r snps.chr22` SNPs from Chromosome 22
+3. `r snps.chr21 + snps.chr22` SNPs from Chromosomes 21 + 22 (separate ELAI runs)
+
+## Performance | Final Models | Held Out Test Data
 
 ![](cluster_output/models.perf.png){width=70%}
 
@@ -249,7 +259,7 @@ $$cancer\_status \sim allele\_dosage_{1} + \ \cdot\cdot\cdot \ + allele\_dosage_
 ```{r model_coefs, include=T, message=F, echo=F}
 library(readr)
 
-getCoefs <- function(sparse_coefs, font_size){
+getCoefs <- function(sparse_coefs){
   require(dplyr)
   require(kableExtra)
   snp_names <- row.names(sparse_coefs)
@@ -258,43 +268,51 @@ getCoefs <- function(sparse_coefs, font_size){
     mutate(snp = snp_names) %>%
     rename(coef = `1`) %>%
     arrange(coef) %>%
-    filter(coef != 0) %>%
-    rmarkdown::paged_table() %>%
-    knitr::kable("html",
-                 digits = 5) %>%
-    kable_styling(bootstrap_options = "striped",
-                  full_width = F, font_size = font_size)
+    filter(coef != 0)
   
   return(df_coefs)
 }
 
-model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>% getCoefs(14)
-model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>% getCoefs(13)
-model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>% getCoefs(12)
+model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>% getCoefs()
+model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>% getCoefs()
+model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>% getCoefs()
+
+
+models.overlap.coefs <- left_join(
+  left_join(
+  model.2122.coefs,
+  model.21.coefs %>% mutate("In 21" = "Yes")),
+  model.22.coefs %>% mutate("In 22" = "Yes")
+) %>% makeTable(12)
+
+model.22.coefs <- model.22.coefs %>% makeTable(13)
+model.21.coefs <- model.21.coefs %>% makeTable(14)
+model.2122.coefs <- model.2122.coefs %>% makeTable(12)
 
 (roc.plot <- read_rds("cluster_output/roc_plot.rds"))
 
 models.tune <- read_rds("cluster_output/models.bestTune.rds")
 
-# tune_table <- tibble(model = c("21", "22", "21/22"),
-#                      lambda = c(models.tune$model.21$lambda,
-#                                 models.tune$model.22$lambda,
-#                                 models.tune$model.2122$lambda)
-#                      ) %>%
-#   rmarkdown::paged_table() %>%
-#   knitr::kable("html",
-#                digits = 5) %>%
-#   kable_styling(bootstrap_options = "striped",
-#                 full_width = F, font_size = 26)
-# `r roc.plot`
-# `r model.21.coefs`
-# `r model.22.coefs`
-# `r model.2122.coefs`
+tune_table <- data.frame(model = c("21", "22", "21/22"),
+                     lambda = c(models.tune$model.21$lambda,
+                                models.tune$model.22$lambda,
+                                models.tune$model.2122$lambda),
+                     SNPs = c(snps.chr21,
+                              snps.chr22,
+                              snps.chr21 + snps.chr22
+                              )
+) %>%
+  makeTable(26)
 ```
+
+## Lambda Parameters
+
+`r tune_table`
 
 ## Coefficients | Chromsome 21
 
 `r model.21.coefs`
+
 
 ## Coefficients | Chromsome 22
 
@@ -304,18 +322,28 @@ models.tune <- read_rds("cluster_output/models.bestTune.rds")
 
 `r model.2122.coefs`
 
+## Coefficients | Overlap?
 
-# Overall Potential Adjustments
+`r models.overlap.coefs`
+
+# Potential Adjustments: Transformation
+
+- Could do file format transformations without `fcgene`.
+  - `plink1.9` offers bimbam output that differs slightly from `fcgene's`, but
+  should still work in ELAI.
+  
+## Potential Adjustments: Ancestry Inference
 
 - ELAI author recommends averaging results over different mixture generation numbers. 
   - Joint model fitting: Running EM steps on source *and* admixed samples is also recommended by the author.
 - Could increase # of EM runs above 30.
-
-<br>
-
-- Various different models, parameter tuning schemes, etc.
-- Combining SNPs from multiple chromosomes, both in model training and runs of ELAI.
+- ELAI can be run with SNPs from multiple chromosomes simultaneously. 
   - Some further adjustment of ELAI input position files would be necessary.
+
+## Potential Adjustments: Cancer Risk Inference
+
+- Various different models, feature selection, parameter tuning schemes, etc.
+- Utilize selected SNPs from LASSO in plain logistic regression (to get SE's for coefficients)
   
 # End
 
@@ -342,13 +370,6 @@ train_model <- function(full_dat, trim, toy=T){
   if (toy == T){
     full_dat <- full_dat[c(1:1000), c(1:100)]
   }
-  
-  
-  train_index <- createDataPartition(full_dat$status, p = .9,
-                                     list = FALSE,
-                                     times = 1)
-  dat_train <- full_dat[train_index, ]
-  dat_test <- full_dat[-train_index, ]
 
   if (trim == 1){ # Most trimmed/smallest model (smallest in memory)
     ctrl <- trainControl(method = "cv", # 10 folds default
@@ -368,7 +389,8 @@ train_model <- function(full_dat, trim, toy=T){
                          summaryFunction = twoClassSummary)
   
   } else if (trim == 3) { # Fattest model (biggest in memory)
-    ctrl <- trainControl(method = "cv",
+    ctrl <- trainControl(method = "repeatedcv",
+                         repeats = 5,
                          returnData = T,
                          classProbs = T,
                          savePredictions = T,
@@ -386,19 +408,16 @@ train_model <- function(full_dat, trim, toy=T){
 
   set.seed(8162020)
   model <- train(status ~ .,
-                 data = dat_train,
+                 data = full_dat,
                  method = "glmnet",
                  metric = "ROC",
                  trControl = ctrl,
                  tuneGrid = hyper_grid
   )
-  return(list(model = model, testset = dat_test))
 }
 
-model.21 <- train_model(read_rds("../data/for_R/chr21.rds"), 3)
-model.21.testset <- model.21$testset
-model.21 <- model.21$model
-
+train_model(read_rds("../data/for_R/chr21.rds"), 3) %>%
+  write_rds("../output/model.chr21.rds")
 train_model(read_rds("../data/for_R/chr22.rds"), 3) %>%
   write_rds("../output/model.chr22.rds")
 train_model(read_rds("../data/for_R/chr2122.rds"), 3) %>%
@@ -415,7 +434,7 @@ perf <- MLeval::evalm(list(model.21, model.22, model.2122), title = "ROC Curve C
 
 # save_rds(perf, "../output/performance.rds")
 
-coefplot <- coefplot::multiplot(list(`Chromosome 21` = model.21$finalModel, `Chromosome 22` = model.22$finalModel, `Chromosome 21/22` = model.2122$finalModel),
-                                pointSize = 1.75) +
-  theme_minimal()
+# coefplot <- coefplot::multiplot(list(`Chromosome 21` = model.21$finalModel, `Chromosome 22` = model.22$finalModel, `Chromosome 21/22` = model.2122$finalModel),
+#                                 pointSize = 1.75) +
+#   theme_minimal()
 ```
