@@ -236,17 +236,74 @@ $$cancer\_status \sim allele\_dosage_{1} + \ \cdot\cdot\cdot \ + allele\_dosage_
 
 ## LASSO
 
-- LASSO has the nice property of zeroing out predictors.
+- LASSO has the nice property of zeroing out coefficients.
 - Assuming the $\lambda$ parameter can be properly adjusted this can allow a simpler model with that focuses on the most relevant SNP predictors.
+- Model selection selects optimal ROC using 10 fold cross validation across 150 possible lambda values (equidistant on log scale from `.001` to `100`).
 
-## Performance
+## Performance | Final Model
 
-```{r display_perf}
+![](cluster_output/models.perf.png){width=70%}
+
+## Performance | ROC 95% CI
+
+```{r model_coefs, include=T, message=F, echo=F}
 library(readr)
-models.perf <- read_rds("models.perf.rds")
-models.coefplot <- read_rds("models.coefplot.rds")
-model.21.coefs <- read_rds("model.21.coefs.rds")
+
+getCoefs <- function(sparse_coefs, font_size){
+  require(dplyr)
+  require(kableExtra)
+  snp_names <- row.names(sparse_coefs)
+  
+  df_coefs <- as.data.frame(as.matrix(sparse_coefs)) %>%
+    mutate(snp = snp_names) %>%
+    rename(coef = `1`) %>%
+    arrange(coef) %>%
+    filter(coef != 0) %>%
+    rmarkdown::paged_table() %>%
+    knitr::kable("html",
+                 digits = 5) %>%
+    kable_styling(bootstrap_options = "striped",
+                  full_width = F, font_size = font_size)
+  
+  return(df_coefs)
+}
+
+model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>% getCoefs(14)
+model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>% getCoefs(13)
+model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>% getCoefs(12)
+
+(roc.plot <- read_rds("cluster_output/roc_plot.rds"))
+
+models.tune <- read_rds("cluster_output/models.bestTune.rds")
+
+# tune_table <- tibble(model = c("21", "22", "21/22"),
+#                      lambda = c(models.tune$model.21$lambda,
+#                                 models.tune$model.22$lambda,
+#                                 models.tune$model.2122$lambda)
+#                      ) %>%
+#   rmarkdown::paged_table() %>%
+#   knitr::kable("html",
+#                digits = 5) %>%
+#   kable_styling(bootstrap_options = "striped",
+#                 full_width = F, font_size = 26)
+# `r roc.plot`
+# `r model.21.coefs`
+# `r model.22.coefs`
+# `r model.2122.coefs`
 ```
+
+## Coefficients | Chromsome 21
+
+`r model.21.coefs`
+
+## Coefficients | Chromsome 22
+
+`r model.22.coefs`
+
+## Coefficients | Chromsome 21/22
+
+`r model.2122.coefs`
+
 
 # Overall Potential Adjustments
 
@@ -262,12 +319,7 @@ model.21.coefs <- read_rds("model.21.coefs.rds")
   
 # End
 
-```{r present_model, eval=F}
-model.chr21 <- readr::read_rds("../output/model.chr21.rds") 
-```
-
-
-```{r toy_model}
+```{r toy_model, eval=F}
 library(readr)
 library(dplyr)
 
@@ -290,6 +342,13 @@ train_model <- function(full_dat, trim, toy=T){
   if (toy == T){
     full_dat <- full_dat[c(1:1000), c(1:100)]
   }
+  
+  
+  train_index <- createDataPartition(full_dat$status, p = .9,
+                                     list = FALSE,
+                                     times = 1)
+  dat_train <- full_dat[train_index, ]
+  dat_test <- full_dat[-train_index, ]
 
   if (trim == 1){ # Most trimmed/smallest model (smallest in memory)
     ctrl <- trainControl(method = "cv", # 10 folds default
@@ -327,22 +386,25 @@ train_model <- function(full_dat, trim, toy=T){
 
   set.seed(8162020)
   model <- train(status ~ .,
-                 data = full_dat,
+                 data = dat_train,
                  method = "glmnet",
                  metric = "ROC",
                  trControl = ctrl,
                  tuneGrid = hyper_grid
   )
+  return(list(model = model, testset = dat_test))
 }
 
-train_model(read_rds("../data/for_R/chr21.rds"), 3) %>%
-  write_rds("../output/model.chr21.rds")
+model.21 <- train_model(read_rds("../data/for_R/chr21.rds"), 3)
+model.21.testset <- model.21$testset
+model.21 <- model.21$model
+
 train_model(read_rds("../data/for_R/chr22.rds"), 3) %>%
   write_rds("../output/model.chr22.rds")
 train_model(read_rds("../data/for_R/chr2122.rds"), 3) %>%
   write_rds("../output/model.chr2122.rds")
 ```
-```{r toy_present}
+```{r toy_present, eval=F}
 # model.most.skinny.21 <- read_rds("../output/model.chr21.skinny.most.rds")
 # model.skinny.21 <- read_rds("../output/model.chr21.skinny.rds")
 model.21 <- read_rds("../output/model.chr21.rds")
