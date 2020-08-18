@@ -31,7 +31,7 @@ train_model <- function(full_dat, trim){
                          trim = T,
                          classProbs = T,
                          summaryFunction = twoClassSummary)
-  
+
   } else if (trim == 3) { # Fattest model (biggest in memory)
     ctrl <- trainControl(method = "cv",
                          returnData = T,

@@ -7,10 +7,6 @@ plink1.9 --vcf data/chr21.phase1_release_v3.20101123.snps_indels_svs.genotypes.r
 plink1.9 --vcf data/chr22.phase1_release_v3.20101123.snps_indels_svs.genotypes.refpanel.AFR.vcf  --make-bed --out data/AFR_Chr22
 #
 # 2) Extract YRI and CEU data from AFR and EUR and save the data to ped and map files
-# EUR goes with CEU, YRI with EUR.
-# Keeping these people from the International Hap Map Project
-# YRI are 30 adult-and-both-parents Yoruba trios from Nigeria
-# CEU are 30 trios of Utah residents of northern and western European ancestry.
 plink1.9 --bfile data/AFR_Chr21 --keep data/YRI_ID.txt --recode --out data/1000YRI_Chr21
 plink1.9 --bfile data/AFR_Chr22 --keep data/YRI_ID.txt --recode --out data/1000YRI_Chr22
 

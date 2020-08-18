@@ -52,6 +52,8 @@ cohort <- tibble(ind = ids.chr21, case = chr21.fam$V6) %>%
   mutate(status = case_when(case == 2 ~ "cancer",
                                    case == 1 ~ "control",
                                    TRUE ~ "unknown"))
+rsids.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)[,1]
+rsids.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)[,1]
 ```
 
 ```{r setup_training_data, eval=F, include=F}
@@ -106,6 +108,15 @@ cohort_breakdown <- cohort %>%
                digits = 5) %>%
   kable_styling(bootstrap_options = "striped",
                 full_width = F, font_size = 26)
+
+snp_breakdown <- tibble(chromosome = c(21, 22),
+                        SNPs = c(length(rsids.chr21), 
+                                 length(rsids.chr22))) %>% 
+  rmarkdown::paged_table() %>%
+  knitr::kable("html",
+               digits = 5) %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F, font_size = 26)
 ```
 
 ```{r get_panel_info}
@@ -130,9 +141,9 @@ panel_breakdown <- bind_rows(
 
 # Overview
 
-<p style="text-align:left;">Using **E**fficient **L**ocal **A**ncestry **I**nference (**ELAI**) we will attempt to infer the allele dosages from West African and Northern/Western European source populations for SNPs across chromosomes 21 and 22 for a sample of African Americans.</p>
+<p style="text-align:left;">Using **E**fficient **L**ocal **A**ncestry **I**nference (**ELAI**) we will estimate the allele dosages for a sample of African Americans using source populations from West Africa and Northern/Western Europe.</p>
 
-<p style="text-align:left;">Combining the ELAI results with the cancer statuses of the sample individuals, we will attempt to fit a model to infer breast cancer risk.</p>
+<p style="text-align:left;">Combining the ELAI results with the cancer statuses of the sample individuals, we will fit a model to infer breast cancer risk.</p>
 
 # Data
 
@@ -151,10 +162,198 @@ panel_breakdown <- bind_rows(
 # Transformations
 
 <p style="text-align:left;">Both the cohort files and panel files end up as bimbam format files for entry use in ELAI.</p>
- - <p style="text-align:left;">For the `*geno.txt` files for the cohort and panel, the number of SNPs must be put on the 2nd row.</p>
- - <p style="text-align:left;">For the study position files the chromsome ID is added.</p>
- - <p style="text-align:left;">For the reference `*geno.txt` files, we add an `"="` after the number of individuals because these genotypes are *phased*, that is, we can identify which chromosome the genotypes' alleles are from.</p>
  
-```{r present_model}
+## Sample preprocessing
+
+![Sample preprocessing](img/preprocess_sample.png)
+
+## Reference Preprocessing
+
+![Reference preprocessing](img/preprocess_reference.png)
+
+## Bimbam Processing
+
+ - <p style="text-align:left;">For the `*geno.txt` files for the cohort and panel, the number of SNPs must be put on the 2nd row.</p>
+ 
+![](img/bimbam_edit1.png)
+
+## Bimbam Processing
+
+ - <p style="text-align:left;">For the study position files the chromsome ID is added.</p>
+ 
+![](img/bimbam_edit2.png)
+ 
+## Bimbam Processing
+
+ - <p style="text-align:left;">For the reference `*geno.txt` files, we add an `"="` after the number of individuals because these genotypes are *phased*, that is, we can identify which chromosome the genotypes' alleles are from.</p>
+
+![](img/bimbam_edit3.png)
+
+# Ancestry Inference
+
+<p style="text-align:left;">ELAI uses a two-layer Hidden Markov model to infer local ancestry of admixed individuals.</p>
+
+<p style="text-align:left;">Given our sample of African Americans . . .</p>
+
+ - African Americans have 2 source populations:
+    - West Africans
+    - Northern/Western Europeans
+ - These 2 source populations began to mix ~10 generations ago.
+ 
+<p style="text-align:left;">These facts inform our final ELAI command.</p>
+ 
+## ELAI Command
+
+![ELAI Command](img/infer_ancestry.png)
+
+## ELAI Output | Dosage
+
+- A file containing a table with dimensions $(S, M, N)$, where:
+  - $S$ corresponds to the number of source populations (`2`)
+  - $M$ to the number of SNPs 
+ `r snp_breakdown`
+  - $N$ to the number of admixed individuals in the sample.
+- For a given $s$, $m$, and $n$ in the file we will see the expected number of alleles from the $s$th source population for $m$th marker for  $n$th individual. (I.e. the allele dosage $\in[0,2]$)
+  
+## ELAI Output | SNP Info
+
+- A file showing information on the SNPs.
+  - `rsID`
+  - `minor allele`
+  - `major allele`
+  - `minor allele frequency`
+  - `major allele frequency`
+  - `position`
+  
+# Cancer Risk Inference
+
+<p style="text-align:left;">By combining elements of the ELAI input and output, we can create a file suitable for cancer risk inference, a $N \times M$ file where individual cancer statuses and rsIDs of SNPs can be identified.</p>
+
+<br>
+<br>
+
+$$cancer\_status \sim allele\_dosage_{1} + \ \cdot\cdot\cdot \ + allele\_dosage_{M}$$
+
+## LASSO
+
+- LASSO has the nice property of zeroing out predictors.
+- Assuming the $\lambda$ parameter can be properly adjusted this can allow a simpler model with that focuses on the most relevant SNP predictors.
+
+## Performance
+
+```{r display_perf}
+library(readr)
+models.perf <- read_rds("models.perf.rds")
+models.coefplot <- read_rds("models.coefplot.rds")
+model.21.coefs <- read_rds("model.21.coefs.rds")
+```
+
+# Overall Potential Adjustments
+
+- ELAI author recommends averaging results over different mixture generation numbers. 
+  - Joint model fitting: Running EM steps on source *and* admixed samples is also recommended by the author.
+- Could increase # of EM runs above 30.
+
+<br>
+
+- Various different models, parameter tuning schemes, etc.
+- Combining SNPs from multiple chromosomes, both in model training and runs of ELAI.
+  - Some further adjustment of ELAI input position files would be necessary.
+  
+# End
+
+```{r present_model, eval=F}
 model.chr21 <- readr::read_rds("../output/model.chr21.rds") 
+```
+
+
+```{r toy_model}
+library(readr)
+library(dplyr)
+
+train_model <- function(full_dat, trim, toy=T){
+  require(caret)
+  require(dplyr)
+  # require(doParallel)
+  # require(doMC)
+
+  a <- seq(log(0.001), log(100), length.out = 25)
+  b <- exp(a) # Left biased lambda search
+
+  # Lasso lambda params
+  hyper_grid <- expand.grid(alpha = 1, lambda = b)
+
+  full_dat <- full_dat %>%
+    filter(status != "unknown") %>%
+    select(-c(ind, case))
+  
+  if (toy == T){
+    full_dat <- full_dat[c(1:1000), c(1:100)]
+  }
+
+  if (trim == 1){ # Most trimmed/smallest model (smallest in memory)
+    ctrl <- trainControl(method = "cv", # 10 folds default
+                         # Save memory
+                         trim = T,
+                         returnData = F,
+                         classProbs = T,
+                         savePredictions = T,
+                         summaryFunction = twoClassSummary)
+
+  } else if (trim == 2) {
+    ctrl <- trainControl(method = "cv",
+                         returnData = T,
+                         trim = T,
+                         classProbs = T,
+                         savePredictions = T,
+                         summaryFunction = twoClassSummary)
+  
+  } else if (trim == 3) { # Fattest model (biggest in memory)
+    ctrl <- trainControl(method = "cv",
+                         returnData = T,
+                         classProbs = T,
+                         savePredictions = T,
+                         summaryFunction = twoClassSummary)
+  }
+
+  options(expressions = 500000)
+  # registerDoMC(2)
+  # Nslots <- as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE"))
+  # cat(as.character(Nslots), "\n")
+  # cl <- makeCluster(Nslots, outfile = "")
+  #
+  # registerDoParallel(cl)
+  #
+
+  set.seed(8162020)
+  model <- train(status ~ .,
+                 data = full_dat,
+                 method = "glmnet",
+                 metric = "ROC",
+                 trControl = ctrl,
+                 tuneGrid = hyper_grid
+  )
+}
+
+train_model(read_rds("../data/for_R/chr21.rds"), 3) %>%
+  write_rds("../output/model.chr21.rds")
+train_model(read_rds("../data/for_R/chr22.rds"), 3) %>%
+  write_rds("../output/model.chr22.rds")
+train_model(read_rds("../data/for_R/chr2122.rds"), 3) %>%
+  write_rds("../output/model.chr2122.rds")
+```
+```{r toy_present}
+# model.most.skinny.21 <- read_rds("../output/model.chr21.skinny.most.rds")
+# model.skinny.21 <- read_rds("../output/model.chr21.skinny.rds")
+model.21 <- read_rds("../output/model.chr21.rds")
+model.22 <- read_rds("../output/model.chr22.rds")
+model.2122 <- read_rds("../output/model.chr2122.rds")
+
+perf <- MLeval::evalm(list(model.21, model.22, model.2122), title = "ROC Curve Comparison", gnames=c("Chromosome 21", "Chromosome 22", "Chromosomes 21/22"), showplots = F, plots = "r", rlinethick = 1)
+
+# save_rds(perf, "../output/performance.rds")
+
+coefplot <- coefplot::multiplot(list(`Chromosome 21` = model.21$finalModel, `Chromosome 22` = model.22$finalModel, `Chromosome 21/22` = model.2122$finalModel),
+                                pointSize = 1.75) +
+  theme_minimal()
 ```
