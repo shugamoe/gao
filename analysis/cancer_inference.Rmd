@@ -149,7 +149,6 @@ panel_breakdown <- bind_rows(
 
 - `r nrow(cohort)` individuals in the sample cohort 
 - `r length(ids.ceu) + length(ids.yri)` individuals in the reference panel
-  - (`r 2*(length(ids.ceu) + length(ids.yri))` haplotypes)
 
 ## Cohort
 
