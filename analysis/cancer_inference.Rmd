@@ -144,7 +144,7 @@ panel_breakdown <- bind_rows(
 
 # Overview
 
-<p style="text-align:left;">Using **E**fficient **L**ocal **A**ncestry **I**nference (**ELAI**) we will estimate the allele dosages for a sample of African Americans using source populations from West Africa and Northern/Western Europe.</p>
+<p style="text-align:left;">Using **E**fficient **L**ocal **A**ncestry **I**nference (**ELAI**) we will estimate SNP allele dosages for a sample of African Americans using source populations from West Africa and Northern/Western Europe.</p>
 
 <p style="text-align:left;">Combining the ELAI results with the cancer statuses of the sample individuals, we will fit a model to infer breast cancer risk.</p>
 
