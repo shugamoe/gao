@@ -313,7 +313,7 @@ models.overlap.coefs <- left_join(
   makeTable(12)
 
 model.22.coefs <- model.22.coefs %>% makeTable(13)
-model.21.coefs <- model.21.coefs %>% makeTable(14)
+model.21.coefs <- model.21.coefs %>% makeTable(9)
 model.2122.coefs <- model.2122.coefs %>% makeTable(12)
 
 (roc.plot <- read_rds("cluster_output/roc_plot.rds"))
