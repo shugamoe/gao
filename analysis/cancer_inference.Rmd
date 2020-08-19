@@ -241,7 +241,9 @@ $$cancer\_status_{i} \sim allele\_dosage_{i1} + \ \cdot\cdot\cdot \ + allele\_do
 - LASSO has the nice property of zeroing out coefficients.
   - Can allow a simpler model that focuses on the most relevant SNP predictors.
 - Model selection chooses the model with highest ROC using: 
-  - 5 fold cross validation repeated 50 times across 150 possible lambda values (equidistant on log scale from `.001` to `100`).
+  - Scaled data (all dosages have `SD` of `1`).
+  - `90%` of the data is utilized for training, with `10%` reserved to assess model performance.
+  - 5 fold cross validation repeated 50 times across 100 possible lambda values (equidistant on log scale from `.001` to `100`).
 
 <br>
 Models
