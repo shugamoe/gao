@@ -62,8 +62,11 @@ cohort <- tibble(ind = ids.chr21, case = chr21.fam$V6) %>%
   mutate(status = case_when(case == 2 ~ "cancer",
                                    case == 1 ~ "control",
                                    TRUE ~ "unknown"))
-rsids.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)[,1]
-rsids.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)[,1]
+snpinfo.chr21 <- read.table("../output/Adm_Cancer_Chr21.snpinfo.txt", skip=2)
+snpinfo.chr22 <- read.table("../output/Adm_Cancer_Chr22.snpinfo.txt", skip=2)
+
+rsids.chr21 <- snpinfo.chr21[,1]
+rsids.chr22 <- snpinfo.chr22[,1]
 ```
 
 ```{r get_training_data, eval=F, include=F}
@@ -274,17 +277,40 @@ getCoefs <- function(sparse_coefs){
   return(df_coefs)
 }
 
-model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>% getCoefs()
-model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>% getCoefs()
-model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>% getCoefs()
+model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>% 
+  getCoefs() %>%
+  left_join(snpinfo.chr21[,c(1,6)], by = c("snp" = "V1")) %>%
+  rename(position = V6) %>%
+  arrange(position, coef)
+model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>%
+  getCoefs() %>%
+  left_join(snpinfo.chr22[,c(1,6)], by = c("snp" = "V1")) %>%
+  rename(position = V6) %>%
+  arrange(position, coef)
+model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>%
+  getCoefs() %>%
+  left_join(bind_rows(snpinfo.chr22[,c(1, 5, 6)],
+                      snpinfo.chr21[,c(1, 5, 6)])
+                      , by = c("snp" = "V1")) %>%
+  rename(position = V6, chromosome = V5) %>%
+  arrange(chromosome, position, coef)
 
 
 models.overlap.coefs <- left_join(
   left_join(
   model.2122.coefs,
-  model.21.coefs %>% mutate("In 21" = "Yes")),
-  model.22.coefs %>% mutate("In 22" = "Yes")
-) %>% makeTable(12)
+  model.21.coefs %>% mutate("In 21 Model" = "Yes")),
+  model.22.coefs %>% mutate("In 22 Model" = "Yes")
+) %>% 
+  arrange(chromosome, position, coef) %>%
+  mutate(`In 21 Model` = case_when(is.na(`In 21 Model`) ~ "No",
+                             TRUE ~ "Yes" 
+                             ),
+         `In 22 Model` = case_when(is.na(`In 22 Model`) ~ "No",
+                             TRUE ~ "Yes"
+                             )
+         ) %>%
+  makeTable(12)
 
 model.22.coefs <- model.22.coefs %>% makeTable(13)
 model.21.coefs <- model.21.coefs %>% makeTable(14)
