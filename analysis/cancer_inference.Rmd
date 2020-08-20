@@ -245,7 +245,7 @@ $$cancer\_status_{i} \sim allele\_dosage_{i1} + \ \cdot\cdot\cdot \ + allele\_do
 - Model selection chooses the model with highest ROC using: 
   - Scaled data (all dosages have `SD` of `1`).
   - `90%` of the data is utilized for training, with `10%` reserved to assess model performance.
-  - 10 fold cross validation repeated 10 times across 100 possible lambda values (equidistant on log scale from `.001` to `100`).
+  - 5 fold cross validation repeated 50 times across 100 possible lambda values (equidistant on log scale from `.001` to `100`).
 
 <br>
 Models
@@ -313,7 +313,7 @@ models.overlap.coefs <- left_join(
   makeTable(12)
 
 model.22.coefs <- model.22.coefs %>% makeTable(13)
-model.21.coefs <- model.21.coefs %>% makeTable(8)
+model.21.coefs <- model.21.coefs %>% makeTable(14)
 model.2122.coefs <- model.2122.coefs %>% makeTable(12)
 
 (roc.plot <- read_rds("cluster_output/roc_plot.rds"))
