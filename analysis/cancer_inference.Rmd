@@ -258,7 +258,7 @@ Models
 
 ![](cluster_output/models.perf.png){width=70%}
 
-## Performance | ROC 95% CI
+## Performance | ROC Bootstrap 95% CIs
 
 ```{r model_coefs, include=T, message=F, echo=F}
 library(readr)
