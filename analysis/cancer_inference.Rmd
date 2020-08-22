@@ -1,7 +1,7 @@
 ---
 title: "Inferring Breast Cancer Risk with Genetic Data"
 author: "Julian McClellan"
-date: "8/13/2020"
+date: "8/25/2020"
 output: 
   revealjs::revealjs_presentation:
     theme: night
@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r get_cohort_info, include=F}
-knitr::opts_chunk$set(include=F)
+knitr::opts_chunk$set(include=F, echo=F)
 # Get IDs for patients
 elai.inp.geno <- c("../data/CancerChr22.geno.txt", "../data/CancerChr22.geno.txt")
 
@@ -281,19 +281,19 @@ model.21.coefs <- read_rds("cluster_output/model.21.coefs.rds") %>%
   getCoefs() %>%
   left_join(snpinfo.chr21[,c(1,6)], by = c("snp" = "V1")) %>%
   rename(position = V6) %>%
-  arrange(position, coef)
+  arrange(coef)
 model.22.coefs <- read_rds("cluster_output/model.22.coefs.rds") %>%
   getCoefs() %>%
   left_join(snpinfo.chr22[,c(1,6)], by = c("snp" = "V1")) %>%
   rename(position = V6) %>%
-  arrange(position, coef)
+  arrange(coef)
 model.2122.coefs <- read_rds("cluster_output/model.2122.coefs.rds") %>%
   getCoefs() %>%
   left_join(bind_rows(snpinfo.chr22[,c(1, 5, 6)],
                       snpinfo.chr21[,c(1, 5, 6)])
                       , by = c("snp" = "V1")) %>%
   rename(position = V6, chromosome = V5) %>%
-  arrange(chromosome, position, coef)
+  arrange(chromosome, coef)
 
 
 models.overlap.coefs <- left_join(
@@ -309,12 +309,13 @@ models.overlap.coefs <- left_join(
          `In 22 Model` = case_when(is.na(`In 22 Model`) ~ "No",
                              TRUE ~ "Yes"
                              )
-         ) %>%
-  makeTable(12)
+         )
 
-model.22.coefs <- model.22.coefs %>% makeTable(13)
-model.21.coefs <- model.21.coefs %>% makeTable(14)
-model.2122.coefs <- model.2122.coefs %>% makeTable(12)
+table.model.22.coefs <- model.22.coefs %>% makeTable(13)
+table.model.21.coefs <- model.21.coefs %>% makeTable(14)
+table.model.2122.coefs <- model.2122.coefs %>% makeTable(12)
+table.models.overlap.coefs <- models.overlap.coefs %>%
+  makeTable(12)
 
 (roc.plot <- read_rds("cluster_output/roc_plot.rds"))
 
@@ -338,20 +339,120 @@ tune_table <- data.frame(model = c("21", "22", "21/22"),
 
 ## Coefficients | Chromsome 21
 
-`r model.21.coefs`
+`r table.model.21.coefs`
 
+## Coefficients | Chromsome 21 {data-transition="none"}
+
+```{r plot_chr21_coefs, include=T}
+plot.xlims <- c(min(snpinfo.chr21$V6, snpinfo.chr22$V6), max(snpinfo.chr21$V6, snpinfo.chr22$V6))
+
+library(ggplot2)
+(model.21.plot <- model.21.coefs %>%
+  filter(snp != "(Intercept)") %>%
+  mutate(y = 1) %>%
+  ggplot(aes(x=position, y=coef, alpha=.5)) + 
+    geom_point(color="#F8766D") + 
+    xlim(plot.xlims[1], plot.xlims[2]) + 
+    guides(alpha=F) +
+    # labs(title = "Model Coefficients", subtitle="Chromosome 21 Only") +
+    geom_hline(yintercept = 0, linetype=3) +
+    theme_minimal())
+```
 
 ## Coefficients | Chromsome 22
 
-`r model.22.coefs`
+`r table.model.22.coefs`
+
+## Coefficients | Chromsome 22 {data-transition="none"}
+
+```{r plot_chr22_coefs, include=T}
+library(ggplot2)
+(model.22.plot <- model.22.coefs %>%
+  filter(snp != "(Intercept)") %>%
+  ggplot(aes(x=position, y=coef, alpha=.5)) + 
+    geom_point(color="#00BA38") + 
+    xlim(plot.xlims[1], plot.xlims[2]) + 
+    guides(alpha=F) +
+    # labs(title = "Model Coefficients", subtitle="Chromsome 22 Only") +
+    geom_hline(yintercept = 0, linetype=3) +
+    theme_minimal())
+```
 
 ## Coefficients | Chromsome 21/22
 
-`r model.2122.coefs`
+`r table.model.2122.coefs`
+
+## Coefficients | Chromsome 21/22 {data-transition="none"}
+
+```{r plot_chr2122_coefs, include=T}
+library(ggplot2)
+model.2122.coefs$chromosome <- factor(model.2122.coefs$chromosome)
+(model.2122.plot <- model.2122.coefs %>%
+  filter(snp != "(Intercept)") %>%
+  ggplot(aes(x=position, y=coef, alpha=.5)) + 
+    geom_point(color="#619CFF") + 
+    xlim(plot.xlims[1], plot.xlims[2]) + 
+    guides(alpha=F, color=F) +
+    # labs(title = "Model Coefficients", subtitle="Chromsomes 21 and 22") +
+    geom_hline(yintercept = 0, linetype=3) +
+    facet_grid(chromosome ~.) +
+    theme_minimal())
+```
 
 ## Coefficients | Overlap?
 
-`r models.overlap.coefs`
+`r table.models.overlap.coefs`
+
+## Coefficients | Overlap? {data-transition="none"}
+
+```{r plot_chr2122_overlap_coefs, include=T}
+name.chr21 <- "Chr21     "
+name.chr22 <- "Chr22     "
+
+model.21.coefs.comp <- model.21.coefs %>%
+  mutate(model=name.chr21, chromosome=as.factor(21))
+
+model.22.coefs.comp <- model.22.coefs %>%
+  mutate(model=name.chr22, chromosome=as.factor(22))
+
+model.2122.coefs.comp <- model.2122.coefs %>%
+  mutate(model="Chr21/22")
+
+ggdata.overlap <- bind_rows(model.21.coefs.comp, model.22.coefs.comp, model.2122.coefs.comp)
+ggdata.overlap$model <- factor(ggdata.overlap$model, levels=c(name.chr21, name.chr22, "Chr21/22"))
+
+ggdata.2122.overlap <- ggdata.overlap %>%
+  filter(model %in% c(name.chr21, name.chr22))
+
+
+library(ggplot2)
+(models.overlap.plot <- ggdata.overlap %>%
+  filter(snp != "(Intercept)") %>%
+  ggplot(aes(x=position, y=coef, alpha=.5, color=model)) + 
+    geom_point() + 
+    xlim(min(snpinfo.chr21$V6, snpinfo.chr22$V6), max(snpinfo.chr21$V6, snpinfo.chr22$V6)) + 
+    guides(alpha=F) +
+    # labs(title = "Models Coefficient Comparison") +
+    geom_hline(yintercept = 0, linetype=3) +
+    facet_grid(chromosome ~.) +
+    theme_minimal())
+```
+
+## Coefficients | Overlap? {data-transition="none"}
+
+```{r models2122_overlap_plot, include=T}
+(models.2122.overlap.plot <- ggdata.2122.overlap %>%
+  filter(snp != "(Intercept)") %>%
+  ggplot(aes(x=position, y=coef, alpha=.5, color=model)) + 
+    geom_point() + 
+    scale_color_manual(values=c("#F8766D", "#00BA38")) +
+    xlim(min(snpinfo.chr21$V6, snpinfo.chr22$V6), max(snpinfo.chr21$V6, snpinfo.chr22$V6)) + 
+    guides(alpha=F) +
+    # labs(title = "Models Coefficient Comparison") +
+    geom_hline(yintercept = 0, linetype=3) +
+    facet_grid(chromosome ~.) +
+    theme_minimal())
+```
 
 # Potential Adjustments: Transformation
 
