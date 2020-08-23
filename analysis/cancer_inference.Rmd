@@ -474,10 +474,6 @@ library(ggplot2)
 - Various different models, feature selection, parameter tuning schemes, etc.
 - Utilize selected SNPs from LASSO in plain logistic regression (to get SE's for coefficients)
 
-## Potential Adjustments: Overall
-
-- Refactoring code.
-  - Combine with virtualization to make analysis reproducible and portable.
   
 # End
 
