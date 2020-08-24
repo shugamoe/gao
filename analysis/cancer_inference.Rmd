@@ -464,7 +464,7 @@ library(ggplot2)
 
 - ELAI author recommends averaging results over different mixture generation numbers. 
   - Could also weight by uncertainty.
-  - Joint model fitting: Running additional EM steps on source *and* admixed samples is also recommended by the author.
+- Joint model fitting: Running additional EM steps on source *and* admixed samples is also recommended by the author.
 - Could increase # of EM steps above 30.
 - ELAI can be run with SNPs from multiple chromosomes simultaneously. 
   - Some further adjustment of ELAI input position files would be necessary.
