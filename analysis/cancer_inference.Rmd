@@ -237,6 +237,9 @@ panel_breakdown <- bind_rows(
 <br>
 
 $$cancer\_status_{i} \sim allele\_dosage_{i1} + \ \cdot\cdot\cdot \ + allele\_dosage_{iM}$$
+<br>
+
+I have chosen West African allele dosages for use as predictor variables.
 
 ## Logistic LASSO Regression
 
