@@ -163,7 +163,7 @@ panel_breakdown <- bind_rows(
 
 # Transformations
 
-<p style="text-align:left;">Both the cohort files and panel files end up as bimbam format files for entry use in ELAI.</p>
+<p style="text-align:left;">Both the cohort files and panel files end up as bimbam format files for use in ELAI.</p>
  
 ## Sample preprocessing
 
