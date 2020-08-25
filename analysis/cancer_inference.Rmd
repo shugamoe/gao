@@ -231,12 +231,12 @@ panel_breakdown <- bind_rows(
 
 <p style="text-align:left;">By combining elements of the ELAI input and output, we can create a file suitable for cancer risk inference, a $N \times M$ file where individual cancer statuses and rsIDs of SNPs can be identified.</p>
 
-<p style="text-align:left;">So for a given chromsome(s) with $M$ SNPs we model an individual $i$'s cancer status as:</p>
+<p style="text-align:left;">So for a given chromsome with $M$ SNPs we model cancer status as:</p>
 
 <br>
 <br>
 
-$$cancer\_status_{i} \sim allele\_dosage_{i1} + \ \cdot\cdot\cdot \ + allele\_dosage_{iM}$$
+$$cancer\_status \sim allele\_dosage_{1} + \ \cdot\cdot\cdot \ + allele\_dosage_{M}$$
 <br>
 
 I have chosen West African allele dosages for use as predictor variables.
